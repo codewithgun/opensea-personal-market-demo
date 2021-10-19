@@ -12,6 +12,7 @@ contract ERC721Collection is ERC721 {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
         return tokenURIs[tokenId];
     }
+    
     function mint(address _to, string memory _tokenURI) public {
         counter += 1;
         tokenURIs[counter] = _tokenURI;

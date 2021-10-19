@@ -61,4 +61,12 @@ contract('ERC721', function (accounts) {
 			}
 		});
 	});
+
+	describe('get owner', async function () {
+		it('should be account 0', async function () {
+			const owner = await contract.owner();
+			console.log('Owner', owner);
+			assert.equal(owner, accounts[0]);
+		});
+	});
 });
