@@ -1,14 +1,19 @@
-function buildCollectionKey(address: string): string {
-	return `${address}_collection`;
+function buildKey(address: string, chainId: string): string {
+	return address + '_' + chainId + '_collection';
 }
 
-export const CollectionService = {
-	getCollection: (address: string): string[] => {
-		let collections = localStorage.getItem(buildCollectionKey(address));
-		return collections ? JSON.parse(collections) : [];
+const CollectionService = {
+	addCollection: (owner: string, chainId: string, contractAddress: string) => {
+		let collection = CollectionService.getCollection(owner, chainId);
+		if (!collection.includes(contractAddress)) {
+			collection.push(contractAddress);
+			localStorage.setItem(buildKey(owner, chainId), JSON.stringify(collection));
+		}
 	},
-    
-	addCollection: (address: string, collectionAddress: string) => {
-		localStorage.setItem(buildCollectionKey(address), '[]');
+
+	getCollection: (owner: string, chainId: string): string[] => {
+		return JSON.parse(localStorage.getItem(buildKey(owner, chainId)) || '[]');
 	},
 };
+
+export default CollectionService;

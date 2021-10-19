@@ -1,39 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import logo from './logo.svg';
-import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import WalletConnectOverlay from './components/walletconnect';
-import { ethers } from 'ethers';
-import NavBarWrapper from './components/navbar';
-import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
+import { Network, OpenSeaPort } from 'opensea-js';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import Web3 from 'web3';
+import './App.css';
+import Collection from './components/collection';
 import Home from './components/home';
-import { OpenSeaPort, Network } from 'opensea-js';
+import NavBarWrapper from './components/navbar';
+import WalletConnectOverlay from './components/walletconnect';
+import CollectionService from './services/collection.service';
 
 function App() {
-	const [provider, setProvider] = useState<ethers.providers.Web3Provider | undefined>(undefined);
+	const [collectionAddress, setCollectionAddress] = useState<string[]>([]);
+	const [provider, setProvider] = useState<Web3 | undefined>(undefined);
+	const [opensea, setOpensea] = useState<OpenSeaPort | undefined>(undefined);
 	const [connectedAddress, setConnectedAddress] = useState<string>('Not connected');
+	const [chainId, setChainId] = useState<string>('');
+
+	useEffect(() => {
+		console.log('Collection', collectionAddress);
+	}, [collectionAddress]);
+
+	useEffect(() => {
+		setCollectionAddress(CollectionService.getCollection(connectedAddress, chainId));
+	}, [connectedAddress]);
 
 	useEffect(() => {
 		if (provider) {
-			const opensea = new OpenSeaPort(provider, {
+			const opensea = new OpenSeaPort(provider.currentProvider, {
 				networkName: Network.Rinkeby,
 			});
-			console.log(opensea);
+			setOpensea(opensea);
 		}
 	}, [provider]);
-    
+
+	const addCollectionAddress = (address: string) => {
+		CollectionService.addCollection(connectedAddress, chainId, address);
+		setCollectionAddress(CollectionService.getCollection(connectedAddress, chainId));
+	};
+
 	return (
-		<div id="app">
-			<Router>
+		<BrowserRouter>
+			<div id="app">
 				<NavBarWrapper address={connectedAddress} />
-				<WalletConnectOverlay setProvider={setProvider} setConnectedAddress={setConnectedAddress} />
+				<WalletConnectOverlay setProvider={setProvider} setConnectedAddress={setConnectedAddress} setChainId={setChainId} />
 				<Switch>
-					<Route path="/">
+					<Route path="/" exact={true}>
 						<Home />
 					</Route>
+					<Route path="/collection" exact={true}>
+						<Collection provider={provider} connectedAddress={connectedAddress} addCollectionAddress={addCollectionAddress} />
+					</Route>
 				</Switch>
-			</Router>
-		</div>
+			</div>
+		</BrowserRouter>
 	);
 }
 

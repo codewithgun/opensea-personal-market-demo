@@ -1,20 +1,21 @@
 import detectEthereumProvider from '@metamask/detect-provider';
 import { MetaMaskInpageProvider } from '@metamask/providers';
-import { ethers } from 'ethers';
 import { useState } from 'react';
 import { Button } from 'react-bootstrap';
+import Web3 from 'web3';
 import './index.css';
 
 export interface WalletConnectProps {
-	setProvider: (provider: ethers.providers.Web3Provider) => void;
+	setProvider: (provider: Web3) => void;
 	setConnectedAddress: (address: string) => void;
+	setChainId: (chainId: string) => void;
 }
 
 export interface ConnectInfo {
 	chainId: string;
 }
 
-const WalletConnectOverlay: React.FC<WalletConnectProps> = ({ setProvider, setConnectedAddress }) => {
+const WalletConnectOverlay: React.FC<WalletConnectProps> = ({ setProvider, setConnectedAddress, setChainId }) => {
 	const [disableConnectButton, setDisableConnectButton] = useState<boolean>(false);
 
 	const onConnectToMetamaskClick = async () => {
@@ -27,17 +28,7 @@ const WalletConnectOverlay: React.FC<WalletConnectProps> = ({ setProvider, setCo
 	};
 
 	const listenMetamask = async (ethereum: MetaMaskInpageProvider) => {
-		ethereum.on('connect', (info) => {
-			const { chainId } = info as ConnectInfo;
-			console.log(chainId);
-			if (Number(chainId) !== 4) {
-				alert('Invalid chain. Please connect to rinkeby testnet');
-			}
-		});
-
 		ethereum.on('accountsChanged', (_accounts) => {
-			// let accounts = _accounts as string[];
-			// setConnectedAddress(accounts[0] || '');
 			window.location.reload();
 		});
 
@@ -52,8 +43,9 @@ const WalletConnectOverlay: React.FC<WalletConnectProps> = ({ setProvider, setCo
 			}
 			if (ethereum.isConnected()) {
 				setDisableConnectButton(true);
+				setChainId(Number(ethereum.chainId).toString());
 				//@ts-expect-error
-				setProvider(new ethers.providers.Web3Provider(ethereum));
+				setProvider(new Web3(ethereum));
 			}
 		} catch (error) {}
 	};
