@@ -69,4 +69,11 @@ contract('ERC721', function (accounts) {
 			assert.equal(owner, accounts[0]);
 		});
 	});
+
+	describe('get contract uri', async function () {
+		it('should return ipfs hash', async function () {
+			let result = await contract.contractURI();
+			console.log('Contract URI', result);
+		});
+	});
 });

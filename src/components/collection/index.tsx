@@ -1,17 +1,13 @@
-import { create } from 'ipfs-http-client';
 import { useState } from 'react';
 import { Button, Container, Form } from 'react-bootstrap';
 import Web3 from 'web3';
 import ERC721 from '../../contract/ERC721';
-
-const client = create({
-	url: 'https://ipfs.infura.io:5001/api/v0',
-});
+import { ipfs } from '../../services/ipfs.service';
 
 export interface CollectionProps {
 	provider: Web3 | undefined;
 	connectedAddress: string;
-	addCollectionAddress: (addresses: string) => void;
+	addCollectionAddress: (addresses: string, collectionName: string) => void;
 }
 
 const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, addCollectionAddress }) => {
@@ -28,11 +24,11 @@ const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, add
 			let logoHash = '';
 			if (imageFile) {
 				console.log('Uploading logo');
-				logoHash = await client.add(imageFile).then((r) => r.cid.toString());
+				logoHash = await ipfs.add(imageFile).then((r) => r.cid.toString());
 				console.log('Logo', logoHash);
 			}
 			console.log('Uploading contract uri');
-			const contractUriHash = await client
+			const contractUriHash = await ipfs
 				.add(
 					JSON.stringify({
 						name,
@@ -54,7 +50,8 @@ const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, add
 				.on('receipt', (receipt) => {
 					//@ts-ignore
 					if (receipt.contractAddress) {
-						addCollectionAddress(receipt.contractAddress);
+						alert('Completed');
+						addCollectionAddress(receipt.contractAddress, name);
 					}
 				});
 		}
@@ -84,6 +81,7 @@ const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, add
 
 	return (
 		<Container>
+			<h3>Create Collection</h3>
 			<Form.Group>
 				<Form.Label>Name</Form.Label>
 				<Form.Control type="text" placeholder="Enter collection name" onChange={onNameChange} />

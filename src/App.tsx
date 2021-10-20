@@ -6,6 +6,7 @@ import Web3 from 'web3';
 import './App.css';
 import Collection from './components/collection';
 import Home from './components/home';
+import Mint from './components/mint';
 import NavBarWrapper from './components/navbar';
 import WalletConnectOverlay from './components/walletconnect';
 import CollectionService from './services/collection.service';
@@ -23,7 +24,7 @@ function App() {
 
 	useEffect(() => {
 		setCollectionAddress(CollectionService.getCollection(connectedAddress, chainId));
-	}, [connectedAddress]);
+	}, [chainId, connectedAddress]);
 
 	useEffect(() => {
 		if (provider) {
@@ -34,8 +35,8 @@ function App() {
 		}
 	}, [provider]);
 
-	const addCollectionAddress = (address: string) => {
-		CollectionService.addCollection(connectedAddress, chainId, address);
+	const addCollectionAddress = (address: string, collectionName: string) => {
+		CollectionService.addCollection(connectedAddress, chainId, address, collectionName);
 		setCollectionAddress(CollectionService.getCollection(connectedAddress, chainId));
 	};
 
@@ -46,7 +47,10 @@ function App() {
 				<WalletConnectOverlay setProvider={setProvider} setConnectedAddress={setConnectedAddress} setChainId={setChainId} />
 				<Switch>
 					<Route path="/" exact={true}>
-						<Home />
+						<Home opensea={opensea} connectedAddress={connectedAddress} />
+					</Route>
+					<Route path="/item" exact={true}>
+						<Mint collectionAddress={collectionAddress} provider={provider} connectedAddress={connectedAddress} opensea={opensea} />
 					</Route>
 					<Route path="/collection" exact={true}>
 						<Collection provider={provider} connectedAddress={connectedAddress} addCollectionAddress={addCollectionAddress} />

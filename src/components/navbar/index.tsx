@@ -16,6 +16,11 @@ const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ address }) => {
 						</Nav.Link>
 					</Nav.Item>
 					<Nav.Item>
+						<Nav.Link as={Link} to="/item">
+							Create Item
+						</Nav.Link>
+					</Nav.Item>
+					<Nav.Item>
 						<Nav.Link as={Link} to="/collection">
 							Collection
 						</Nav.Link>
