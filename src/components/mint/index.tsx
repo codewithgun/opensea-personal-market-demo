@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Container, Dropdown, DropdownButton, Form, Table, Button } from 'react-bootstrap';
-import Web3 from 'web3';
-import ERC721 from '../../contract/ERC721';
-import { TransactionReceipt } from 'web3-core';
-import { ipfs } from '../../services/ipfs.service';
 import { OpenSeaPort } from 'opensea-js';
+import { useEffect, useState } from 'react';
+import { Button, Container, Dropdown, DropdownButton, Form, Table } from 'react-bootstrap';
+import Web3 from 'web3';
+import { TransactionReceipt } from 'web3-core';
+import ERC721 from '../../contract/ERC721';
+import { ipfs } from '../../services/ipfs.service';
 
 export interface MintProps {
 	collectionAddress: string[];
