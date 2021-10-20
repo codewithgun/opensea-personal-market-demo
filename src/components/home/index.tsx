@@ -37,15 +37,15 @@ const Home: React.FC<HomeProps> = ({ opensea, connectedAddress }) => {
 		}
 	};
 
-	return (
-		<Container>
-			<div className="d-flex">
-				<h3>Asset</h3>
-				<Button variant="success" onClick={refreshAsset}>
-					Refresh
-				</Button>
-			</div>
-			{Object.entries(assetCollection).map(([key, value], i) => {
+	const onRefreshClick = async () => {
+		await refreshAsset();
+		alert('Refresh complete');
+	};
+
+	const collectionRendering = () => {
+		let assetCollectionEntries = Object.entries(assetCollection);
+		if (assetCollectionEntries.length > 0) {
+			return assetCollectionEntries.map(([key, value], i) => {
 				return (
 					<div key={i}>
 						<h5>Collection {key.split('_').pop()}</h5>
@@ -84,7 +84,25 @@ const Home: React.FC<HomeProps> = ({ opensea, connectedAddress }) => {
 						</div>
 					</div>
 				);
-			})}
+			});
+		} else {
+			return (
+				<div className="d-flex justify-content-center">
+					<span>Nothing to show</span>
+				</div>
+			);
+		}
+	};
+
+	return (
+		<Container>
+			<div className="d-flex">
+				<h3 className="m-1">Asset</h3>
+				<Button variant="success" onClick={onRefreshClick}>
+					Refresh
+				</Button>
+			</div>
+			{collectionRendering()}
 		</Container>
 	);
 };

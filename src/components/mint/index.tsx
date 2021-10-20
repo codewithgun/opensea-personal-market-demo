@@ -28,6 +28,7 @@ const Mint: React.FC<MintProps> = ({ collectionAddress, provider, connectedAddre
 	const [newAttribute, setNewAttribute] = useState<string>('');
 	const [newAttributeValue, setNewAttributeValue] = useState<string>('');
 	const [price, setPrice] = useState<string>('');
+	const [progress, setProgress] = useState<string>('');
 
 	useEffect(() => {
 		console.log('Attributes', attributes);
@@ -82,7 +83,7 @@ const Mint: React.FC<MintProps> = ({ collectionAddress, provider, connectedAddre
 
 	const onCreateClick = async () => {
 		if (!selectedContract) {
-			alert('Please select collection');
+			alert('Please select collection (contract)');
 			return;
 		}
 		if (!name || !description || !externalLink || !file) {
@@ -96,10 +97,13 @@ const Mint: React.FC<MintProps> = ({ collectionAddress, provider, connectedAddre
 		if (provider) {
 			let fileHash: string = '';
 			if (file) {
+				setProgress('Uploading file to IPFS');
 				console.log('Uploading file');
 				fileHash = await ipfs.add(file).then((r) => r.cid.toString());
 				console.log('File hash', fileHash);
+				setProgress('File successfully uploaded to IPFS');
 			}
+			setProgress('Uploading token URI to IPFS');
 			console.log('Uploading token URI');
 			const tokenUriHash = await ipfs
 				.add(
@@ -113,9 +117,11 @@ const Mint: React.FC<MintProps> = ({ collectionAddress, provider, connectedAddre
 				)
 				.then((r) => r.cid.toString());
 			console.log('TokenURI hash', tokenUriHash);
+			setProgress('Token URI successfully uploaded');
 			const [address] = selectedContract.split('_');
 			//@ts-ignore
 			const contract = new provider.eth.Contract(ERC721.abi, address);
+			setProgress('Minting NFT');
 			contract.methods
 				.mint(connectedAddress, `ipfs://${tokenUriHash}`)
 				.send({
@@ -127,24 +133,34 @@ const Mint: React.FC<MintProps> = ({ collectionAddress, provider, connectedAddre
 						//@ts-ignore
 						let tokenId = receipt.events['Transfer'].returnValues['tokenId'];
 						console.log('TokenId', tokenId);
-						if (opensea) {
-							opensea
-								.createSellOrder({
-									accountAddress: connectedAddress,
-									asset: {
-										tokenId,
-										tokenAddress: address,
-									},
-									startAmount: Number(price),
-									endAmount: Number(price),
-								})
-								.then((result) => {
-									alert('Successfully listed');
-									console.log('Listing', result);
-								})
-								.catch(console.error);
-						}
+						setProgress('Delaying 30 seconds');
+						setTimeout(() => {
+							if (opensea) {
+								setProgress('Placing sell order at open sea');
+								opensea
+									.createSellOrder({
+										accountAddress: connectedAddress,
+										asset: {
+											tokenId,
+											tokenAddress: address,
+										},
+										startAmount: Number(price),
+										endAmount: Number(price),
+									})
+									.then((result) => {
+										alert('Successfully listed');
+										setProgress('');
+										console.log('Listing', result);
+									})
+									.catch((error) => {
+										setProgress(error.message);
+									});
+							}
+						}, 30000);
 					}
+				})
+				.catch((error: any) => {
+					setProgress(error.message);
 				});
 		}
 	};
@@ -152,6 +168,7 @@ const Mint: React.FC<MintProps> = ({ collectionAddress, provider, connectedAddre
 	return (
 		<Container>
 			<h3>Create Item</h3>
+			<span className="small">{progress}</span>
 			<DropdownButton title={selectedContract} id="dropdown-menu-align-right" onSelect={onContractSelect}>
 				{collectionAddress.map((e) => {
 					const [address, collectionName] = e.split('_');
@@ -218,7 +235,7 @@ const Mint: React.FC<MintProps> = ({ collectionAddress, provider, connectedAddre
 				<Form.Control type="text" placeholder="Enter price" onChange={onPriceChange} />
 			</Form.Group>
 			<Form.Group>
-				<Button variant="primary" onClick={onCreateClick}>
+				<Button variant="primary" onClick={onCreateClick} className="mt-1">
 					Create
 				</Button>
 			</Form.Group>

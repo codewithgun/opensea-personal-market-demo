@@ -42,10 +42,18 @@ const WalletConnectOverlay: React.FC<WalletConnectProps> = ({ setProvider, setCo
 				setConnectedAddress(accounts[0] || '');
 			}
 			if (ethereum.isConnected()) {
-				setDisableConnectButton(true);
-				setChainId(Number(ethereum.chainId).toString());
-				//@ts-expect-error
-				setProvider(new Web3(ethereum));
+				let chainId = Number(ethereum.chainId || '');
+				if (chainId !== 4) {
+					//@ts-ignore
+					if (!alert('Please switch to rinkeby')) {
+						window.location.reload();
+					}
+				} else {
+					setDisableConnectButton(true);
+					setChainId(chainId.toString());
+					//@ts-expect-error
+					setProvider(new Web3(ethereum));
+				}
 			}
 		} catch (error) {}
 	};

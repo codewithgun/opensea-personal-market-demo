@@ -11,6 +11,7 @@ export interface CollectionProps {
 }
 
 const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, addCollectionAddress }) => {
+	const [progress, setProgress] = useState<string>('');
 	const [name, setName] = useState<string>('');
 	const [symbol, setSymbol] = useState<string>('');
 	const [description, setDescription] = useState<string>('');
@@ -19,14 +20,21 @@ const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, add
 
 	const onCreateClick = async () => {
 		if (provider) {
+			if (!name || !symbol || !description || !imageFile || !externalLink) {
+				alert('Please fill in all fields');
+				return;
+			}
 			// @ts-ignore
 			const contract = new provider.eth.Contract(ERC721.abi);
 			let logoHash = '';
 			if (imageFile) {
-				console.log('Uploading logo');
+				setProgress('Uploading logo to IPFS');
+				console.log('Uploading logo to IPFS');
 				logoHash = await ipfs.add(imageFile).then((r) => r.cid.toString());
 				console.log('Logo', logoHash);
+				setProgress('Logo upload completed');
 			}
+			setProgress('Uploading contract uri to IPFS');
 			console.log('Uploading contract uri');
 			const contractUriHash = await ipfs
 				.add(
@@ -39,6 +47,8 @@ const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, add
 				)
 				.then((r) => r.cid.toString());
 			console.log('ContractURI', contractUriHash);
+			setProgress('Contract URI upload completed');
+			setProgress('Deploying contract');
 			contract
 				.deploy({
 					data: ERC721.bytecode,
@@ -51,8 +61,12 @@ const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, add
 					//@ts-ignore
 					if (receipt.contractAddress) {
 						alert('Completed');
+						setProgress('');
 						addCollectionAddress(receipt.contractAddress, name);
 					}
+				})
+				.catch((error) => {
+					setProgress(error.message);
 				});
 		}
 	};
@@ -82,6 +96,7 @@ const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, add
 	return (
 		<Container>
 			<h3>Create Collection</h3>
+			<span className="small">{progress}</span>
 			<Form.Group>
 				<Form.Label>Name</Form.Label>
 				<Form.Control type="text" placeholder="Enter collection name" onChange={onNameChange} />
@@ -103,7 +118,7 @@ const Collection: React.FC<CollectionProps> = ({ provider, connectedAddress, add
 				<Form.Control type="text" placeholder="Enter collection external link" onChange={onExternalLinkChange} />
 			</Form.Group>
 			<Form.Group>
-				<Button variant="primary" onClick={onCreateClick}>
+				<Button variant="primary" onClick={onCreateClick} className="mt-1">
 					Create
 				</Button>
 			</Form.Group>
